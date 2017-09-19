@@ -147,6 +147,22 @@ public class StateEditor {
         return false;
     }
 
+    public boolean weHaveDroveTooFar(RoutingRequest options) {
+        if (options.modes.isTransit()) {
+            return child.drivingDistance >= options.maxLyftDrivingDistance;
+        }
+
+        return false;
+    }
+
+    public boolean weHaveDroveTooLittle(RoutingRequest options) {
+        if (options.modes.isTransit()) {
+            return child.drivingDistance < options.minLyftDrivingDistance;
+        }
+
+        return false;
+    }
+
     public boolean isMaxPreTransitTimeExceeded(RoutingRequest options) {
         return child.preTransitTime > options.maxPreTransitTime;
     }
@@ -231,6 +247,15 @@ public class StateEditor {
         child.walkDistance += length;
     }
 
+    public void incrementDrivingDistance(double length) {
+        if (length < 0) {
+            LOG.warn("A state's driving distance is being incremented by a negative amount.");
+            defectiveTraversal = true;
+            return;
+        }
+        child.drivingDistance += length;
+    }
+
     public void incrementPreTransitTime(int seconds) {
         if (seconds < 0) {
             LOG.warn("A state's pre-transit time is being incremented by a negative amount.");
@@ -305,6 +330,10 @@ public class StateEditor {
         child.walkDistance = walkDistance;
     }
 
+    public void setDrivingDistance(double drivingDistance) {
+        child.drivingDistance = drivingDistance;
+    }
+
     public void setPreTransitTime(int preTransitTime) {
         child.preTransitTime = preTransitTime;
     }
@@ -351,6 +380,15 @@ public class StateEditor {
         child.stateData.usingRentedBike = bikeRenting;
         if (bikeRenting) {
             child.stateData.nonTransitMode = TraverseMode.BICYCLE;
+        } else {
+            child.stateData.nonTransitMode = TraverseMode.WALK;
+        }
+    }
+
+    public void setLyftRide(boolean on) {
+        cloneStateDataAsNeeded();
+        if (on) {
+            child.stateData.nonTransitMode = TraverseMode.CAR;
         } else {
             child.stateData.nonTransitMode = TraverseMode.WALK;
         }

@@ -88,6 +88,18 @@ public class RoutingRequest implements Cloneable, Serializable {
     public double maxWalkDistance = Double.MAX_VALUE;
 
     /**
+     * The minimum distance (in meters) the user is willing to take a lyft for access/egress legs.
+     * Default to 2000 meters
+     */
+    public double minLyftDrivingDistance = 2000;
+
+    /**
+     * The maximum distance (in meters) for user is willing to drive for access/egress legs.
+     * Defaults to unlimited
+     */
+    public double maxLyftDrivingDistance = Double.MAX_VALUE;
+
+    /**
      * The maximum distance (in meters) the user is willing to walk for transfer legs.
      * Defaults to unlimited. Currently set to be the same value as maxWalkDistance.
      */
@@ -420,6 +432,7 @@ public class RoutingRequest implements Cloneable, Serializable {
     public boolean allowBikeRental = false;
     public boolean bikeParkAndRide = false;
     public boolean parkAndRide  = false;
+    public boolean lyftAndRide  = false;
     public boolean kissAndRide  = false;
 
     /* Whether we are in "long-distance mode". This is currently a server-wide setting, but it could be made per-request. */

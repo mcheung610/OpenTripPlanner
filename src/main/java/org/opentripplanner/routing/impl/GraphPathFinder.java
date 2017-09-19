@@ -300,9 +300,10 @@ public class GraphPathFinder {
 
         RoutingRequest request = createReversedRequest(originalReq, options, fromVertex, toVertex,
                 arrDepTime, new EuclideanRemainingWeightHeuristic());
-        if((originalReq.parkAndRide || originalReq.kissAndRide) && !originalReq.arriveBy){
+        if((originalReq.parkAndRide || originalReq.kissAndRide || originalReq.lyftAndRide) && !originalReq.arriveBy){
             request.parkAndRide = false;
             request.kissAndRide = false;
+            request.lyftAndRide = false;
             request.modes.setCar(false);
         }
         request.maxWalkDistance = CLAMP_MAX_WALK;
@@ -313,9 +314,10 @@ public class GraphPathFinder {
                                                         Vertex toVertex, long dateTime, RemainingWeightHeuristic remainingWeightHeuristic){
         RoutingRequest request = createReversedRequest(originalReq, options, fromVertex,
                 toVertex, dateTime, remainingWeightHeuristic);
-        if((originalReq.parkAndRide || originalReq.kissAndRide) && originalReq.arriveBy){
+        if((originalReq.parkAndRide || originalReq.kissAndRide || originalReq.lyftAndRide) && originalReq.arriveBy){
             request.parkAndRide = false;
             request.kissAndRide = false;
+            request.lyftAndRide = false;
             request.modes.setCar(false);
         }
         return request;

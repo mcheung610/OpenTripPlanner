@@ -32,16 +32,16 @@ public class ProfileRequest implements Serializable, Cloneable {
     public int    toTime;
 
     /** The speed of walking, in meters per second */
-    public float  walkSpeed;
+    public float  walkSpeed = 1.4f;
     
     /** The speed of cycling, in meters per second */
-    public float  bikeSpeed;
+    public float  bikeSpeed = 4.1f;
     
     /** The speed of driving, in meters per second */
-    public float  carSpeed;
+    public float  carSpeed = 20f;
 
     /** Maximum time to reach the destination without using transit */
-    public int    streetTime;
+    public int    streetTime = 90;
     
     /**
      * Maximum walk time before and after using transit, in minutes
@@ -60,28 +60,28 @@ public class ProfileRequest implements Serializable, Cloneable {
      * This is solved by using separate walk budgets at the origin and destination. It could also be solved (although this
      * would slow the algorithm down) by retaining all Pareto-optimal combinations of (travel time, walk distance).
      */
-    public int    maxWalkTime;
+    public int    maxWalkTime = 15;
     
     /** Maximum bike time when using transit */
-    public int    maxBikeTime;
+    public int    maxBikeTime = 20;
     
     /** Maximum car time before when using transit */ 
-    public int    maxCarTime;
+    public int    maxCarTime = 30;
     
     /** Minimum time to ride a bike (to prevent extremely short bike legs) */
-    public int    minBikeTime;
+    public int    minBikeTime = 5;
     
     /** Minimum time to drive (to prevent extremely short driving legs) */
-    public int    minCarTime;
+    public int    minCarTime = 5;
 
     /** The date of the search */
     public LocalDate date;
     
     /** The order in which to return multiple options */
-    public Option.SortOrder orderBy;
+    public Option.SortOrder orderBy = Option.SortOrder.AVG;
     
     /** the maximum number of options presented PER ACCESS MODE */
-    public int limit;
+    public int limit = 15;
     
     /** The modes used to access transit */
     public QualifiedModeSet accessModes;
@@ -131,13 +131,13 @@ public class ProfileRequest implements Serializable, Cloneable {
 
     /* The relative importance of different factors when biking */
     /** The relative importance of maximizing safety when cycling */
-    public int bikeSafe;
+    public int bikeSafe = 1;
     
     /** The relative importance of minimizing hills when cycling */
-    public int bikeSlope;
+    public int bikeSlope = 1;
     
     /** The relative importance of minimizing time when cycling */
-    public int bikeTime;
+    public int bikeTime = 1;
     // FIXME change "safe" to "danger" to consistently refer to the things being minimized
 
     /**
@@ -147,7 +147,7 @@ public class ProfileRequest implements Serializable, Cloneable {
       eliminated by an alternative that is only marginally better. We want to effectively push the max travel time of
       alternatives out a bit to account for the fact that they don't always run on schedule.
     */
-    public int suboptimalMinutes;
+    public int suboptimalMinutes = 5;
 
     /** A non-destructive scenario to apply when executing this request */
     public Scenario scenario;

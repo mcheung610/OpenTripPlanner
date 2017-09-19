@@ -160,12 +160,16 @@ public class SimpleStreetSplitter {
 
         double duplicateDeg = SphericalDistanceLibrary.metersToDegrees(DUPLICATE_WAY_EPSILON_METERS);
 
+        // We allow bicycle and lyft to walk
         final TraverseModeSet traverseModeSet;
         if (traverseMode == TraverseMode.BICYCLE) {
+            traverseModeSet = new TraverseModeSet(traverseMode, TraverseMode.WALK);
+        } else if (traverseMode == TraverseMode.CAR && options.lyftAndRide) {
             traverseModeSet = new TraverseModeSet(traverseMode, TraverseMode.WALK);
         } else {
             traverseModeSet = new TraverseModeSet(traverseMode);
         }
+
         // We sort the list of candidate edges by distance to the stop
         // This should remove any issues with things coming out of the spatial index in different orders
         // Then we link to everything that is within DUPLICATE_WAY_EPSILON_METERS of of the best distance
@@ -518,6 +522,7 @@ public class SimpleStreetSplitter {
             TraverseModeSet modes = options.modes;
             if (modes.getCar())
                 // for park and ride we will start in car mode and walk to the end vertex
+                // for lyft, we will start and end with car mode
                 if (endVertex && (options.parkAndRide || options.kissAndRide)) {
                     nonTransitMode = TraverseMode.WALK;
                 } else {

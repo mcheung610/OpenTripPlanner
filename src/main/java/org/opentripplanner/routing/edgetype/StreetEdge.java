@@ -288,6 +288,36 @@ public class StreetEdge extends Edge implements Cloneable {
                 }
             }
         }
+
+        // logic for handling lyft ride
+        if (options.lyftAndRide) {
+            if (options.arriveBy) {
+                if (s0.isEverBoarded() && currMode == TraverseMode.WALK) {
+                    editor = doTraverse(s0, options, TraverseMode.CAR);
+                    if (editor != null) {
+                        //editor.setLyftRide(true);
+                        State forkState = editor.makeState();
+                        if (forkState != null) {
+                            forkState.addToExistingResultChain(state);
+                            return forkState;
+                        }
+                    }
+                }
+            } else {
+                if ( ! getPermission().allows(TraverseMode.CAR) && currMode == TraverseMode.CAR) {
+                    editor = doTraverse(s0, options, TraverseMode.WALK);
+                    if (editor != null) {
+                        //editor.setLyftRide(false);
+                        return editor.makeState();
+                    }
+                } else if ( getPermission().allows(TraverseMode.CAR) && currMode == TraverseMode.WALK) {
+                    editor = doTraverse(s0, options, TraverseMode.CAR);
+                    if (editor != null) {
+                        return editor.makeState();
+                    }
+                }
+            }
+        }
         return state;
     }
 
@@ -314,9 +344,12 @@ public class StreetEdge extends Edge implements Cloneable {
         walkingBike &= TraverseMode.WALK.equals(traverseMode);
 
         /* Check whether this street allows the current mode. If not and we are biking, attempt to walk the bike. */
+        /* if we are on a lyft, attempt to walk */
         if (!canTraverse(options, traverseMode)) {
             if (traverseMode == TraverseMode.BICYCLE) {
                 return doTraverse(s0, options.bikeWalkingOptions, TraverseMode.WALK);
+            } else if (traverseMode == TraverseMode.CAR && options.lyftAndRide) {
+                return doTraverse(s0, options, TraverseMode.WALK);
             }
             return null;
         }
@@ -464,6 +497,8 @@ public class StreetEdge extends Edge implements Cloneable {
 
             if (!traverseMode.isDriving()) {
                 s1.incrementWalkDistance(realTurnCost / 100);  // just a tie-breaker
+            } else {
+                s1.incrementDrivingDistance(realTurnCost / 100);
             }
 
             long turnTime = (long) Math.ceil(realTurnCost);
@@ -481,13 +516,15 @@ public class StreetEdge extends Edge implements Cloneable {
 
         if (!traverseMode.isDriving()) {
             s1.incrementWalkDistance(getDistance());
+        } else {
+            s1.incrementDrivingDistance(getDistance());
         }
 
         /* On the pre-kiss/pre-park leg, limit both walking and driving, either soft or hard. */
         int roundedTime = (int) Math.ceil(time);
-        if (options.kissAndRide || options.parkAndRide) {
+        if (options.kissAndRide || options.parkAndRide || options.lyftAndRide) {
             if (options.arriveBy) {
-                if (!s0.isCarParked()) s1.incrementPreTransitTime(roundedTime);
+                if (!s0.isCarParked() || options.lyftAndRide) s1.incrementPreTransitTime(roundedTime);
             } else {
                 if (!s0.isEverBoarded()) s1.incrementPreTransitTime(roundedTime);
             }
@@ -514,6 +551,11 @@ public class StreetEdge extends Edge implements Cloneable {
                 LOG.debug("Too much walking. Bailing.");
                 return null;
             }
+        }
+
+        if (s1.weHaveDroveTooFar(options)) {
+            LOG.debug("Drove too far");
+            return null;
         }
 
         s1.incrementTimeInSeconds(roundedTime);

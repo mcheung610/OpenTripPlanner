@@ -2,18 +2,29 @@ package org.opentripplanner.graph_builder.module;
 
 import com.conveyal.gtfs.GTFSFeed;
 import com.conveyal.gtfs.model.*;
+import org.glassfish.hk2.utilities.ClasspathDescriptorFileFinder;
 import org.mapdb.Fun;
+import org.onebusaway.csv_entities.CsvInputSource;
+import org.onebusaway.gtfs.impl.GtfsRelationalDaoImpl;
 import org.onebusaway.gtfs.model.AgencyAndId;
 import org.onebusaway.gtfs.model.Stop;
+import org.onebusaway.gtfs.model.calendar.CalendarServiceData;
+import org.onebusaway.gtfs.serialization.GtfsReader;
+import org.opentripplanner.ConstantsForTests;
 import org.opentripplanner.graph_builder.linking.SimpleStreetSplitter;
 import org.opentripplanner.graph_builder.model.GtfsBundle;
 import org.opentripplanner.graph_builder.module.osm.DefaultWayPropertySetSource;
 import org.opentripplanner.graph_builder.module.osm.OpenStreetMapModule;
+import org.opentripplanner.gtfs.GtfsContext;
+import org.opentripplanner.gtfs.GtfsLibrary;
 import org.opentripplanner.openstreetmap.impl.AnyFileBasedOpenStreetMapProviderImpl;
+import org.opentripplanner.routing.edgetype.factory.GTFSPatternHopFactory;
 import org.opentripplanner.routing.graph.Graph;
 import org.opentripplanner.routing.vertextype.TransitStop;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -34,6 +45,21 @@ public class FakeGraph {
 
     /** Build a graph in Columbus, OH with no transit */
     public static Graph buildGraphNoTransit () throws UnsupportedEncodingException {
+        return buildGraph("columbus.osm.pbf");
+    }
+
+    public static Graph buildSFBayAreaGraph() throws UnsupportedEncodingException {
+        return buildGraph("sfbayarea.osm.pbf");
+    }
+
+    public static void addCaltrainTransit (Graph gg) throws Exception {
+        GtfsContext context = GtfsLibrary.readGtfs(new File(ConstantsForTests.CALTRAIN_GTFS));
+        GTFSPatternHopFactory factory = new GTFSPatternHopFactory(context);
+        factory.run(gg);
+        gg.putService(CalendarServiceData.class, GtfsLibrary.createCalendarServiceData(context.getDao()));
+    }
+
+    private static Graph buildGraph(String path) throws UnsupportedEncodingException {
         Graph gg = new Graph();
 
         OpenStreetMapModule loader = new OpenStreetMapModule();
@@ -41,7 +67,7 @@ public class FakeGraph {
         AnyFileBasedOpenStreetMapProviderImpl provider = new AnyFileBasedOpenStreetMapProviderImpl();
 
         File file = new File(
-                URLDecoder.decode(FakeGraph.class.getResource("columbus.osm.pbf").getFile(),
+                URLDecoder.decode(FakeGraph.class.getResource(path).getFile(),
                         "UTF-8"));
 
         provider.setPath(file);

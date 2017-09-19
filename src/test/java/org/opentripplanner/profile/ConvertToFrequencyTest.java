@@ -13,7 +13,10 @@ import org.opentripplanner.profile.RepeatedRaptorProfileRouter;
 import org.opentripplanner.routing.core.TraverseModeSet;
 import org.opentripplanner.routing.graph.Graph;
 import org.opentripplanner.routing.impl.DefaultStreetVertexIndexFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.ws.rs.core.Response;
 import java.util.Arrays;
 
 import static org.opentripplanner.graph_builder.module.FakeGraph.*;
@@ -22,6 +25,7 @@ import static org.opentripplanner.graph_builder.module.FakeGraph.*;
  * Make sure that converting lines to frequency-based representations works.
  */
 public class ConvertToFrequencyTest extends TestCase {
+
     /** The simplest case of frequency conversion: no weird loop routes or anything like that, travel times always same, etc. */
     @Test
     public void testSimpleConversion () throws Exception {

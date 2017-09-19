@@ -56,6 +56,8 @@ public class State implements Cloneable {
     // we should DEFINITELY rename this variable and the associated methods.
     public double walkDistance;
 
+    public double drivingDistance;
+
     // The time traveled pre-transit, for park and ride or kiss and ride searches
     int preTransitTime;
 
@@ -121,12 +123,16 @@ public class State implements Cloneable {
         if (options.parkAndRide || options.kissAndRide) {
             this.stateData.carParked = options.arriveBy;
             this.stateData.nonTransitMode = this.stateData.carParked ? TraverseMode.WALK : TraverseMode.CAR;
+        } else if (options.lyftAndRide) {
+            this.stateData.carParked = false;
+            this.stateData.nonTransitMode = TraverseMode.CAR;
         } else if (options.bikeParkAndRide) {
             this.stateData.bikeParked = options.arriveBy;
             this.stateData.nonTransitMode = this.stateData.bikeParked ? TraverseMode.WALK
                     : TraverseMode.BICYCLE;
         }
         this.walkDistance = 0;
+        this.drivingDistance = 0;
         this.preTransitTime = 0;
         this.time = timeSeconds * 1000;
         stateData.routeSequence = new AgencyAndId[0];
@@ -278,9 +284,16 @@ public class State implements Cloneable {
         // When drive-to-transit is enabled, we need to check whether the car has been parked (or whether it has been picked up in reverse).
         boolean parkAndRide = stateData.opt.parkAndRide || stateData.opt.kissAndRide;
         boolean bikeParkAndRide = stateData.opt.bikeParkAndRide;
+        boolean lyftAndRide = stateData.opt.lyftAndRide;
         boolean bikeRentingOk = false;
         boolean bikeParkAndRideOk = false;
         boolean carParkAndRideOk = false;
+
+        // any vertex can be the end of path when riding lyft
+        if (lyftAndRide) {
+            return lyftAndRide;
+        }
+
         if (stateData.opt.arriveBy) {
             bikeRentingOk = !isBikeRenting();
             bikeParkAndRideOk = !bikeParkAndRide || !isBikeParked();
@@ -332,6 +345,13 @@ public class State implements Cloneable {
     public double getWalkDistanceDelta () {
         if (backState != null)
             return Math.abs(this.walkDistance - backState.walkDistance);
+        else
+            return 0.0;
+    }
+
+    public double getDrivingDistanceDelta() {
+        if (backState != null)
+            return Math.abs(this.drivingDistance - backState.drivingDistance);
         else
             return 0.0;
     }
@@ -711,6 +731,7 @@ public class State implements Cloneable {
                 editor.incrementTimeInSeconds(orig.getAbsTimeDeltaSeconds());
                 editor.incrementWeight(orig.getWeightDelta());
                 editor.incrementWalkDistance(orig.getWalkDistanceDelta());
+                editor.incrementDrivingDistance(orig.getDrivingDistanceDelta());
                 editor.incrementPreTransitTime(orig.getPreTransitTimeDelta());
                 
                 // propagate the modes through to the reversed edge
